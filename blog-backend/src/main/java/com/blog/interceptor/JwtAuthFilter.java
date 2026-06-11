@@ -1,0 +1,53 @@
+package com.blog.interceptor;
+
+import com.blog.utils.JwtUtils;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private final JwtUtils jwtUtils;
+
+    public JwtAuthFilter(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain) throws ServletException, IOException {
+        String header = request.getHeader("Authorization");
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            if (jwtUtils.validateToken(token)) {
+                Claims claims = jwtUtils.parseToken(token);
+                String role = claims.get("role", Integer.class) == 0 ? "ROLE_ADMIN" : "ROLE_BLOGGER";
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                claims.getSubject(),
+                                null,
+                                List.of(new SimpleGrantedAuthority(role))
+                        );
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+        }
+        chain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // 对 multipart 请求也正常过滤——确保 /api/upload 能通过 JWT 认证
+        return false;
+    }
+}

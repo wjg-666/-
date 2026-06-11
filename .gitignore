@@ -1,0 +1,42 @@
+# Logs
+*.log
+logs/
+
+# Dependencies
+node_modules/
+blog-frontend/node_modules/
+
+# Build outputs
+dist/
+blog-frontend/dist/
+target/
+blog-backend/target/
+
+# Uploaded files (user content)
+uploads/
+blog-backend/uploads/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven generated
+effective-pom.xml
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Misc
+*.local
+package-lock.json
